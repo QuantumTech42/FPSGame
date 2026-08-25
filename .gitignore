@@ -1,0 +1,12 @@
+# UE 构建与缓存文件
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# IDE 配置文件（如 Visual Studio）
+.vs/
+.vscode/
+*.vsconfig
+*.sln
+.idea/
