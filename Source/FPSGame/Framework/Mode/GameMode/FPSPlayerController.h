@@ -13,4 +13,9 @@ UCLASS()
 class FPSGAME_API AFPSPlayerController : public AFPSPlayerControllerBase
 {
 	GENERATED_BODY()
+
+public:
+	AFPSPlayerController();
+
+	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 };

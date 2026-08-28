@@ -10,3 +10,5 @@ Saved/
 *.vsconfig
 *.sln
 .idea/
+
+.git/

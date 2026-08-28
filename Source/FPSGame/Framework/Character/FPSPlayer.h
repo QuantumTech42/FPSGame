@@ -1,4 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+//玩家
 
 #pragma once
 
@@ -6,10 +7,15 @@
 #include "Core/FPSCharatcerBase.h"
 #include "FPSPlayer.generated.h"
 
-UCLASS()
+UCLASS(config=Game)
 class FPSGAME_API AFPSPlayer : public AFPSCharatcerBase
 {
 	GENERATED_BODY()
+
+protected:
+	virtual void NotifyControllerChanged() override;
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
 	// Sets default values for this character's properties
@@ -23,6 +29,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void Jump() override;
 };
+
+inline void AFPSPlayer::Jump()
+{
+	Super::Jump();
+}

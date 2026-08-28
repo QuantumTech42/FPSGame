@@ -3,6 +3,29 @@
 
 #include "FPSPlayer.h"
 
+#include "Components/SimpleFPSInputComponent.h"
+
+
+void AFPSPlayer::NotifyControllerChanged()
+{
+	Super::NotifyControllerChanged();
+
+	if (USimpleFPSInputComponent* InFPSInputComponent = FindComponentByClass<USimpleFPSInputComponent>())
+	{
+		InFPSInputComponent->RegisterMappingContext();
+	}
+}
+
+// Called to bind functionality to input
+void AFPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (USimpleFPSInputComponent* InFPSInputComponent = FindComponentByClass<USimpleFPSInputComponent>())
+	{
+		InFPSInputComponent->SetupPlayerInputComponent(PlayerInputComponent);
+	}
+}
 
 // Sets default values
 AFPSPlayer::AFPSPlayer()
@@ -22,11 +45,5 @@ void AFPSPlayer::BeginPlay()
 void AFPSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-// Called to bind functionality to input
-void AFPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
