@@ -15,7 +15,8 @@ public class FPSGame : ModuleRules
 			"Engine", 
 			"InputCore", 
 			"EnhancedInput",
-			"SimpleFPSFeatureKit"
+			"SimpleFPSFeatureKit",
+			"SimpleModularGameplay"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

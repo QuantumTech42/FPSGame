@@ -1,26 +1,25 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-//伤害和攻击
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SimpleModularCharacter.h"
+#include "GameFramework/Character.h"
+#include "SimpleModularCharacter.generated.h"
 
-#include "FPSCharatcerBase.generated.h"
-
-//伤害和接受伤害，攻击
-UCLASS(config=Game)
-class FPSGAME_API AFPSCharatcerBase : public ASimpleModularCharacter
+UCLASS()
+class SIMPLEMODULARGAMEPLAY_API ASimpleModularCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	AFPSCharatcerBase();
+	ASimpleModularCharacter();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void PreInitializeComponents() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	// Called every frame
