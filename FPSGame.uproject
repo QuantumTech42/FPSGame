@@ -33,6 +33,10 @@
 		{
 			"Name": "SimpleModularGameplay",
 			"Enabled": true
+		},
+		{
+			"Name": "SimpleInputExpand",
+			"Enabled": true
 		}
 	]
 }

@@ -5,13 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "Core/FPSCharatcerBase.h"
+#include "Interface/SimpleInpputInterface.h"
 #include "FPSPlayer.generated.h"
 
 UCLASS(config=Game)
-class FPSGAME_API AFPSPlayer : public AFPSCharatcerBase
+class FPSGAME_API AFPSPlayer : public AFPSCharatcerBase, public ISimpleInpputInterface
 {
 	GENERATED_BODY()
 
+public:
+	virtual void K2_OnActionInputTag_Implementation(ETriggerEvent InEvent, const FInputActionValue& Value, FGameplayTag InputTag) override;
+	
 protected:
 	virtual void NotifyControllerChanged() override;
 	// Called to bind functionality to input

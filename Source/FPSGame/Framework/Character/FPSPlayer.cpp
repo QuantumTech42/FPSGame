@@ -4,7 +4,15 @@
 #include "FPSPlayer.h"
 
 #include "Components/SimpleFPSInputComponent.h"
+#include "Components/SimpleInputComponent.h"
 
+//防止代码优化，方便调试
+UE_DISABLE_OPTIMIZATION
+
+void AFPSPlayer::K2_OnActionInputTag_Implementation(ETriggerEvent InEvent, const FInputActionValue& Value,
+                                                    FGameplayTag InputTag)
+{
+}
 
 void AFPSPlayer::NotifyControllerChanged()
 {
@@ -13,6 +21,11 @@ void AFPSPlayer::NotifyControllerChanged()
 	if (USimpleFPSInputComponent* InFPSInputComponent = FindComponentByClass<USimpleFPSInputComponent>())
 	{
 		InFPSInputComponent->RegisterMappingContext();
+	}
+
+	if (USimpleInputComponent* InInputComponent = FindComponentByClass<USimpleInputComponent>())
+	{
+		InInputComponent->RegisterMappingContext();
 	}
 }
 
@@ -24,6 +37,11 @@ void AFPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	if (USimpleFPSInputComponent* InFPSInputComponent = FindComponentByClass<USimpleFPSInputComponent>())
 	{
 		InFPSInputComponent->SetupPlayerInputComponent(PlayerInputComponent);
+	}
+
+	if (USimpleInputComponent* InInputComponent = FindComponentByClass<USimpleInputComponent>())
+	{
+		InInputComponent->SetupPlayerInputComponent(PlayerInputComponent);
 	}
 }
 
@@ -38,7 +56,6 @@ AFPSPlayer::AFPSPlayer()
 void AFPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -47,3 +64,4 @@ void AFPSPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+UE_ENABLE_OPTIMIZATION

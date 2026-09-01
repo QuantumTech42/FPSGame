@@ -16,10 +16,11 @@ public class FPSGame : ModuleRules
 			"InputCore", 
 			"EnhancedInput",
 			"SimpleFPSFeatureKit",
-			"SimpleModularGameplay"
+			"SimpleModularGameplay",
+			"SimpleInputExpand"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
