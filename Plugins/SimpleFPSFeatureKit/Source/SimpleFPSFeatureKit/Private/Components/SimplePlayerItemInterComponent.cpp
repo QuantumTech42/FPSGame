@@ -24,6 +24,11 @@ USimplePlayerItemInterComponent::USimplePlayerItemInterComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
+	SelectItemActorRange = 150.f;
+	SphereCenterOffset = FVector::ZeroVector;
+
+	TriggerInterval = 0.f;
+	CheckCollisionType = ECollisionChannel::ECC_GameTraceChannel1;
 }
 
 
@@ -44,5 +49,29 @@ void USimplePlayerItemInterComponent::TickComponent(float DeltaTime, ELevelTick 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void USimplePlayerItemInterComponent::Trigger(const FInputActionValue& Value)
+{
+	if (TriggerInterval <= 0.0f && SelectingItem.IsValid())
+	{
+		TriggerInterval = 0.5f;
+
+		StartTriggerSelectingItem();
+	}
+}
+
+void USimplePlayerItemInterComponent::Throw(const FInputActionValue& Value)
+{
+	if (TriggerInterval <= 0.0f && InteractingItem.IsValid())
+	{
+		TriggerInterval = 0.5f;
+
+		EndTriggerInteractingItem();
+	}
+}
+
+void USimplePlayerItemInterComponent::CheckItemAroundPlayer()
+{
 }
 

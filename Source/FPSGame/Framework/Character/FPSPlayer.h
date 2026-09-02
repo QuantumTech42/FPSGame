@@ -8,14 +8,17 @@
 #include "Interface/SimpleInpputInterface.h"
 #include "FPSPlayer.generated.h"
 
+class USimplePlayerItemInterComponent;
+
 UCLASS(config=Game)
 class FPSGAME_API AFPSPlayer : public AFPSCharatcerBase, public ISimpleInpputInterface
 {
 	GENERATED_BODY()
 
 public:
-	virtual void K2_OnActionInputTag_Implementation(ETriggerEvent InEvent, const FInputActionValue& Value, FGameplayTag InputTag) override;
-	
+	virtual void K2_OnActionInputTag_Implementation(ETriggerEvent InEvent, const FInputActionValue& Value,
+	                                                FGameplayTag InputTag) override;
+
 protected:
 	virtual void NotifyControllerChanged() override;
 	// Called to bind functionality to input
@@ -34,9 +37,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void Jump() override;
-};
 
-inline void AFPSPlayer::Jump()
-{
-	Super::Jump();
-}
+protected:
+	UPROPERTY()
+	TWeakObjectPtr<USimplePlayerItemInterComponent> InteractionComponent;
+};

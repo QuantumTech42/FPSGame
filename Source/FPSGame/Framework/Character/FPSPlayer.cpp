@@ -3,8 +3,10 @@
 
 #include "FPSPlayer.h"
 
+#include "EnhancedInputComponent.h"
 #include "Components/SimpleFPSInputComponent.h"
 #include "Components/SimpleInputComponent.h"
+#include "Components/SimplePlayerItemInterComponent.h"
 
 //防止代码优化，方便调试
 UE_DISABLE_OPTIMIZATION
@@ -12,6 +14,26 @@ UE_DISABLE_OPTIMIZATION
 void AFPSPlayer::K2_OnActionInputTag_Implementation(ETriggerEvent InEvent, const FInputActionValue& Value,
                                                     FGameplayTag InputTag)
 {
+	if (InputTag.GetTagName() == TEXT("PickUp"))
+	{
+		if (InEvent == ETriggerEvent::Triggered)
+		{
+			if (InteractionComponent.IsValid())
+			{
+				InteractionComponent->Trigger(Value);
+			}
+		}
+	}
+	else if (InputTag.GetTagName() == TEXT("Throw"))
+	{
+		if (InEvent == ETriggerEvent::Triggered)
+		{
+			if (InteractionComponent.IsValid())
+			{
+				InteractionComponent->Throw(Value);
+			}
+		}
+	}
 }
 
 void AFPSPlayer::NotifyControllerChanged()
@@ -56,12 +78,19 @@ AFPSPlayer::AFPSPlayer()
 void AFPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	InteractionComponent = FindComponentByClass<USimplePlayerItemInterComponent>();
 }
 
 // Called every frame
 void AFPSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AFPSPlayer::Jump()
+{
+	Super::Jump();
 }
 
 UE_ENABLE_OPTIMIZATION

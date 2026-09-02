@@ -44,7 +44,7 @@ void USimpleItemInterComponent::StartTriggerSelectingItemOnServer_Implementation
 	OnSelectingItemTriggerStart(InSelectingItem, false);
 }
 
-void USimpleItemInterComponent::EndTriggerSelectingItemOnServer_Implementation(bool bIsPutPack)
+void USimpleItemInterComponent::EndTriggerInteractingItemOnServer_Implementation(bool bIsPutPack)
 {
 	OnInteractingItemTriggerEnd(InteractingItem.Get(), bIsPutPack);
 }
@@ -75,7 +75,7 @@ void USimpleItemInterComponent::StartTriggerSelectingItem()
 	StartTriggerSelectingItemOnServer(SelectingItem.Get());
 }
 
-void USimpleItemInterComponent::EndTriggerSelectingItem()
+void USimpleItemInterComponent::EndTriggerInteractingItem()
 {
 	if (!IsEndTriggerInteractingItem())
 	{
@@ -83,7 +83,7 @@ void USimpleItemInterComponent::EndTriggerSelectingItem()
 		return;
 	}
 
-	EndTriggerSelectingItemOnServer(false);
+	EndTriggerInteractingItemOnServer(false);
 }
 
 void USimpleItemInterComponent::ServerTriggerItem(ASimpleItemActorBase* NewTriggerItem, bool bForceInHand)

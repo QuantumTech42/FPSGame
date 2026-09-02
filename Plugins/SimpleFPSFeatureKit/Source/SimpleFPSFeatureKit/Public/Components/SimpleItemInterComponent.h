@@ -31,7 +31,7 @@ public:
 	void StartTriggerSelectingItem();
 
 	UFUNCTION(BlueprintCallable, Category="ItemInteractionComponent")
-	void EndTriggerSelectingItem();
+	void EndTriggerInteractingItem();
 
 public:
 	//是否检测到对象
@@ -54,7 +54,7 @@ protected:
 	void StartTriggerSelectingItemOnServer(ASimpleItemActorBase* InSelectingItem);
 
 	UFUNCTION(Server, Unreliable)
-	void EndTriggerSelectingItemOnServer(bool bIsPutPack);
+	void EndTriggerInteractingItemOnServer(bool bIsPutPack);
 
 	//面向对象具体逻辑，泛化内容
 	UFUNCTION(BlueprintNativeEvent, Category="ItemInteractionComponent")
