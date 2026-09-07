@@ -4,6 +4,7 @@
 #include "Components/SimpleItemInterComponent.h"
 
 #include "GameFramework/Actor.h"
+#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -84,6 +85,15 @@ void USimpleItemInterComponent::EndTriggerInteractingItem()
 	}
 
 	EndTriggerInteractingItemOnServer(false);
+}
+
+void USimpleItemInterComponent::PlayMontageNetMulticast_Implementation(UAnimMontage* InMontage, float InPlayRate,
+	FName StartSectionName)
+{
+	if (ACharacter* CharacterOwner = Cast<ACharacter>(GetOwner()))
+	{
+		CharacterOwner->PlayAnimMontage(InMontage, InPlayRate, StartSectionName);
+	}
 }
 
 void USimpleItemInterComponent::ServerTriggerItem(ASimpleItemActorBase* NewTriggerItem, bool bForceInHand)

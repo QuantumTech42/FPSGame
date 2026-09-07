@@ -5,12 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "SimpleModularCharacter.h"
+#include "Interface/SimpleItemInteractionInterface.h"
 
 #include "FPSCharatcerBase.generated.h"
 
 //伤害和接受伤害，攻击
 UCLASS(config=Game)
-class FPSGAME_API AFPSCharatcerBase : public ASimpleModularCharacter
+class FPSGAME_API AFPSCharatcerBase : public ASimpleModularCharacter, public ISimpleItemInteractionInterface
 {
 	GENERATED_BODY()
 
@@ -28,4 +29,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+public:
+	virtual USkeletalMeshComponent* GetCharacterMesh_Implementation() override;
 };

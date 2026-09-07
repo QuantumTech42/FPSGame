@@ -3,6 +3,12 @@
 
 #include "Components/SimplePlayerItemInterComponent.h"
 
+#include "Actors/Items/Core/SimpleItemActorBase.h"
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+
 
 void USimplePlayerItemInterComponent::OnSelectingItemTriggerStart_Implementation(ASimpleItemActorBase* InSelectingItem,
 	bool bForceInHand)
@@ -38,7 +44,6 @@ void USimplePlayerItemInterComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
 }
 
 
@@ -49,6 +54,17 @@ void USimplePlayerItemInterComponent::TickComponent(float DeltaTime, ELevelTick 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+	//是本地输入的代理玩家
+	if (GetOwner() && GetOwner()->HasLocalNetOwner())
+	{
+		CheckItemAroundPlayer();
+
+		TriggerInterval -= DeltaTime;
+		if (TriggerInterval < 0.f)
+		{
+			TriggerInterval = 0.f;
+		}
+	}
 }
 
 void USimplePlayerItemInterComponent::Trigger(const FInputActionValue& Value)
@@ -73,5 +89,72 @@ void USimplePlayerItemInterComponent::Throw(const FInputActionValue& Value)
 
 void USimplePlayerItemInterComponent::CheckItemAroundPlayer()
 {
-}
+	if (!IsStartInteraction())
+	{
+		SelectingItem = nullptr;
+		return;
+	}
 
+	UWorld* WorldPtr = GetWorld();
+	APlayerController* PlayerControllerPtr = WorldPtr ? WorldPtr->GetFirstPlayerController() : nullptr;
+	APawn* PlayerCharacterPtr = PlayerControllerPtr ? PlayerControllerPtr->GetPawn() : nullptr;
+
+	NearbyItems.Empty();
+
+	SelectingItem = nullptr;
+
+	if (WorldPtr && PlayerControllerPtr && PlayerCharacterPtr)
+	{
+		FVector PlayerLocation = PlayerCharacterPtr->GetActorLocation();
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes{UEngineTypes::ConvertToObjectType(CheckCollisionType)};
+		TArray<AActor*> ActorsToIgnore{PlayerCharacterPtr, InteractingItem.Get()};
+
+		TArray<FHitResult> HitResults;
+
+		if (UKismetSystemLibrary::SphereTraceMultiForObjects(
+			WorldPtr,
+			PlayerLocation + SphereCenterOffset,
+			PlayerLocation + SphereCenterOffset,
+			SelectItemActorRange,
+			ObjectTypes,
+			false,
+			ActorsToIgnore,
+			DrawDebugTraceMode,
+			HitResults,
+			true,
+			FLinearColor::Red,
+			FLinearColor::Green,
+			2.f))
+		{
+			double MinItemAngle = 360.0;
+
+			//找到和视口最近的交互点
+			for (auto& HitResult : HitResults)
+			{
+				if (ASimpleItemActorBase* HitItemActor = Cast<ASimpleItemActorBase>(HitResult.GetActor()))
+				{
+					if (HitItemActor->IsStartTrigger(this,false))
+					{
+						NearbyItems.Emplace(HitItemActor);
+
+						FVector OutLocation;
+						FRotator OutRotation;
+						PlayerControllerPtr->GetPlayerViewPoint(OutLocation, OutRotation);
+					
+						double DotValue = FVector::DotProduct(
+							(HitResult.GetActor()->GetActorLocation() - OutLocation).GetSafeNormal(),
+							OutRotation.Vector().GetSafeNormal());
+
+						double TmpItemAngle = FMath::RadiansToDegrees(FMath::Acos(DotValue));
+
+						if (TmpItemAngle < MinItemAngle)
+						{
+							MinItemAngle = TmpItemAngle;
+							SelectingItem = HitItemActor;
+						}
+					}
+				}
+			}
+		}
+	}
+}

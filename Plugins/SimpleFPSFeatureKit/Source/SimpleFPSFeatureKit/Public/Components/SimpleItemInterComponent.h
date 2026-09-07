@@ -8,6 +8,7 @@
 #include "SimpleItemInterComponent.generated.h"
 
 
+class UAnimMontage;
 class ASimpleItemActorBase;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -63,6 +64,13 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category="ItemInteractionComponent")
 	void OnInteractingItemTriggerEnd(ASimpleItemActorBase* InInteractingItem, bool bIsPutPack);
 
+public:
+	UFUNCTION(NetMulticast, Unreliable,BlueprintCallable,Category="ItemInteractionComponent")
+	void PlayMontageNetMulticast(
+		UAnimMontage* InMontage,
+		float InPlayRate = 1.f,
+		FName StartSectionName = NAME_None);
+	
 public:
 	//在服务器做交互
 	void ServerTriggerItem(ASimpleItemActorBase* NewTriggerItem, bool bForceInHand = false);
