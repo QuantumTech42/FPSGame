@@ -17,7 +17,7 @@
 		{
 			"Name": "SimpleFPSFeatureKit",
 			"Type": "Runtime",
-			"LoadingPhase": "PreLoadingScreen"
+			"LoadingPhase": "Default"
 		}
 	]
 }

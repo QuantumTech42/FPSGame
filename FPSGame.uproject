@@ -37,6 +37,10 @@
 		{
 			"Name": "SimpleInputExpand",
 			"Enabled": true
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	]
 }
