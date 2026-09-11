@@ -180,6 +180,7 @@ public:
 	void OnEquipped(UObject* InInstigator);
 	void OnUnequipped(UObject* InInstigator);
 
+	//触发GAS时执行，模拟武器升温
 	void AddSpread();
 	//更新连续射击的时间和相关判定，例如首发精准
 	//用于GAS记录

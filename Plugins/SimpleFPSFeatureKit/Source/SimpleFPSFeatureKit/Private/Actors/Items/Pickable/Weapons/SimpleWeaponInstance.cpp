@@ -5,6 +5,7 @@
 
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
 USimpleWeaponInstance::USimpleWeaponInstance()
@@ -25,8 +26,8 @@ void USimpleWeaponInstance::GetLifetimeReplicatedProps(TArray<class FLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass,Instigator);
-	DOREPLIFETIME(ThisClass,CurrentCartridge);
+	DOREPLIFETIME(ThisClass, Instigator);
+	DOREPLIFETIME(ThisClass, CurrentCartridge);
 }
 
 void USimpleWeaponInstance::WeaponTick(float DeltaSeconds)
@@ -42,7 +43,7 @@ void USimpleWeaponInstance::OnEquipped(UObject* InInstigator)
 {
 	float MinHeatRange, MaxHeatRange;
 	ComputeHeatRange(MinHeatRange, MaxHeatRange);
-	CurrentHeat = (MinHeatRange+MaxHeatRange)*0.5f;
+	CurrentHeat = (MinHeatRange + MaxHeatRange) * 0.5f;
 
 	CurrentSpreadAngle = HeatToSpreadAngleCurve.GetRichCurveConst()->Eval(CurrentHeat);
 
@@ -60,6 +61,10 @@ void USimpleWeaponInstance::OnUnequipped(UObject* InInstigator)
 
 void USimpleWeaponInstance::AddSpread()
 {
+	const float HeatPerShot = HeatToHeatPerShotCurve.GetRichCurveConst()->Eval(CurrentHeat);
+	CurrentHeat = ClampHeat(CurrentHeat + HeatPerShot);
+
+	CurrentSpreadAngle = HeatToSpreadAngleCurve.GetRichCurveConst()->Eval(CurrentHeat);
 }
 
 void USimpleWeaponInstance::UpdateFiringTime()
@@ -71,12 +76,73 @@ void USimpleWeaponInstance::UpdateFiringTime()
 
 bool USimpleWeaponInstance::UpdateSpread(float DeltaSeconds)
 {
-	return true;
+	const float TimeSinceFired = GetWorld() ? GetWorld()->TimeSince(LastFireTime) : 0.0f;
+
+	if (TimeSinceFired > SpreadRecoveryCoolDownDelay)
+	{
+		const float CoolDownRate = HeatToCoolDownPerSecondCurve.GetRichCurveConst()->Eval(CurrentHeat);
+		CurrentHeat = ClampHeat(CurrentHeat - (CoolDownRate * DeltaSeconds));
+
+		CurrentSpreadAngle = HeatToSpreadAngleCurve.GetRichCurveConst()->Eval(CurrentHeat);
+	}
+
+	float MinSpread, MaxSpread;
+	ComputeSpreadRange(MinSpread, MaxSpread);
+
+	return FMath::IsNearlyEqual(CurrentSpreadAngle, MinSpread,KINDA_SMALL_NUMBER);
 }
 
 bool USimpleWeaponInstance::UpdateMultipliers(float DeltaSeconds)
 {
-	return true;
+	const float MultiplierNearlyEqualThreshold = 0.05f;
+
+	ACharacter* PlayerCharacter = GetCharacter();
+	UCharacterMovementComponent* CharMoveComp = PlayerCharacter ? PlayerCharacter->GetCharacterMovement() : nullptr;
+	const float CharacterSpeed = PlayerCharacter ? PlayerCharacter->GetVelocity().Length() : 0.0f;
+
+	//速度越快散射越高
+	const float MovementTargetValue = FMath::GetMappedRangeValueClamped(
+		FVector2D(StandingStillSpeedThreshold, StandingStillSpeedThreshold + StandingStillToMovingSpeedRange),
+		FVector2D(SpreadAngleMultiplier_StandingStill, 1.f),
+		CharacterSpeed);
+
+	//FInterpTo值可以无限接近于目标
+	StandingStillMultiplier = FMath::FInterpTo(
+		StandingStillMultiplier,
+		MovementTargetValue,
+		DeltaSeconds,
+		TransactionRate_StandingStill);
+	const bool bStandingStillMultiplierAtMin = FMath::IsNearlyEqual(
+		StandingStillMultiplier,
+		SpreadAngleMultiplier_StandingStill,
+		MultiplierNearlyEqualThreshold);
+
+	const bool bIsCrouching = (CharMoveComp != nullptr) && CharMoveComp->IsCrouching();
+	const float CrouchingTargetValue = bIsCrouching ? SpreadAngleMultiplier_Crouching : 1.f;
+	CrouchingMultiplier = FMath::FInterpTo(
+		CrouchingMultiplier,
+		CrouchingTargetValue,
+		DeltaSeconds,
+		TransactionRate_Crouching);
+	const bool bCrouchingMultiplierAtMin = FMath::IsNearlyEqual(
+		CrouchingMultiplier,
+		SpreadAngleMultiplier_Crouching,
+		MultiplierNearlyEqualThreshold);
+
+	float AimingAlpha = 0.f;
+	//根据开镜比例映射开镜散射倍率
+	const float AimingMultiplier = FMath::GetMappedRangeValueClamped(
+		FVector2D(0.f, 1.f),
+		FVector2D(1.f, SpreadAngleMultiplier_Aiming),
+		AimingAlpha);
+	const bool bAimingMultiplierAtMin = FMath::IsNearlyEqual(
+		AimingMultiplier,
+		SpreadAngleMultiplier_Aiming,
+		MultiplierNearlyEqualThreshold);
+
+	CurrentSpreadAngleMultiplier = StandingStillMultiplier * CrouchingMultiplier * AimingMultiplier;
+
+	return bStandingStillMultiplierAtMin && bCrouchingMultiplierAtMin && bAimingMultiplierAtMin;
 }
 
 void USimpleWeaponInstance::CartridgeCost(int32 CostCounts)
@@ -105,6 +171,18 @@ void USimpleWeaponInstance::ComputeSpreadRange(float& MinSpread, float& MaxSprea
 
 void USimpleWeaponInstance::ComputeHeatRange(float& MinHeat, float& MaxHeat)
 {
+	float Min1, Max1;
+	HeatToHeatPerShotCurve.GetRichCurveConst()->GetTimeRange(Min1, Max1);
+
+	float Min2, Max2;
+	HeatToCoolDownPerSecondCurve.GetRichCurveConst()->GetTimeRange(Min2, Max2);
+
+	float Min3, Max3;
+	HeatToSpreadAngleCurve.GetRichCurveConst()->GetTimeRange(Min3, Max3);
+
+	//保证覆盖到全部范围
+	MinHeat = FMath::Min(Min1, FMath::Min(Min2, Min3));
+	MaxHeat = FMath::Max(Max1, FMath::Max(Max2, Max3));
 }
 
 void USimpleWeaponInstance::SetAnimationParamsOnEquipped_Implementation(UObject* InInstigator)
