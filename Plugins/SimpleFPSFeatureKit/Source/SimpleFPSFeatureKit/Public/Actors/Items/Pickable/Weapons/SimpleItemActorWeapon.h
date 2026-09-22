@@ -6,6 +6,7 @@
 #include "Actors/Items/Pickable/Core/SimpleItemActorPickable.h"
 #include "SimpleItemActorWeapon.generated.h"
 
+class USimpleWeaponManagerComponent;
 class USimpleWeaponInstance;
 
 UCLASS()
@@ -54,6 +55,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void EquipToHand();
 
+public:
+	USimpleWeaponManagerComponent* GetWeaponManager(USimpleItemInterComponent* ItemInteractionComponent) const;
+	
 private:
 	UPROPERTY(Replicated)
 	TObjectPtr<USimpleWeaponInstance> WeaponInstance;

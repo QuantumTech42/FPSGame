@@ -3,6 +3,12 @@
 
 #include "Components/SimpleInvMgrComponent.h"
 
+#include "Actors/Items/Pickable/Inventory/SimpleItemActorInventory.h"
+#include "Components/SimplePlayerItemInterComponent.h"
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
+#include "Net/UnrealNetwork.h"
+
 
 void FSimpleItemInventoryList::SetInventorySize(const int32& NewInventorySize)
 {
@@ -137,6 +143,8 @@ FSimpleItemInventoryEntry* FSimpleItemInventoryList::GetEntry(
 void USimpleInvMgrComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, InventoryList);
 }
 
 // Sets default values for this component's properties
@@ -167,4 +175,134 @@ void USimpleInvMgrComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+USimplePlayerItemInterComponent* USimpleInvMgrComponent::GetItemInteractionComponent()
+{
+	check(GetOwner());
+
+	return GetOwner()->FindComponentByClass<USimplePlayerItemInterComponent>();
+}
+
+bool USimpleInvMgrComponent::GetItemEntry(TSubclassOf<USimpleItemPickableDefinition> ItemDef,
+                                          FSimpleItemInventoryEntry& TargetEntry)
+{
+	TargetEntry = FSimpleItemInventoryEntry();
+
+	if (FSimpleItemInventoryEntry* ItemEntry = InventoryList.GetEntry(ItemDef))
+	{
+		TargetEntry = *ItemEntry;
+		return true;
+	}
+
+	return false;
+}
+
+bool USimpleInvMgrComponent::IsAddItemToInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef)
+{
+	FSimpleItemInventoryEntry* TmpEntry = nullptr;
+	return InventoryList.IsAddEntry(ItemDef, TmpEntry);
+}
+
+bool USimpleInvMgrComponent::IsRemoveItemFromInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef,
+                                                       const int32& ItemCounts)
+{
+	FSimpleItemInventoryEntry* TmpEntry = nullptr;
+	return InventoryList.IsRemoveEntry(ItemDef, ItemCounts, TmpEntry);
+}
+
+int32 USimpleInvMgrComponent::AddItemToInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef,
+                                                 const int32& ItemCounts)
+{
+	check(GetOwner() && GetOwner()->HasAuthority());
+
+	return InventoryList.AddEntry(ItemDef, ItemCounts);
+}
+
+int32 USimpleInvMgrComponent::RemoveItemFromInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef,
+                                                      const int32& ItemCounts)
+{
+	check(GetOwner() && GetOwner()->HasAuthority());
+
+	return InventoryList.RemoveEntry(ItemDef, ItemCounts);
+}
+
+void USimpleInvMgrComponent::DiscardItemFromInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef,
+                                                      const int32& ItemCounts)
+{
+	check(GetOwner() && GetOwner()->HasAuthority() && GetWorld());
+
+	if (ItemDef)
+	{
+		const USimpleItemPickableDefinition* TmpItemDef = ItemDef.GetDefaultObject();
+
+		if (TmpItemDef->ItemClass)
+		{
+			if (InventoryList.RemoveEntry(ItemDef, ItemCounts))
+			{
+				FTransform SpawnTransform(
+					GetOwner()->GetActorRotation(),
+					GetOwner()->GetActorLocation(),
+					FVector::OneVector);
+
+				FActorSpawnParameters SpawnParameters;
+				SpawnParameters.SpawnCollisionHandlingOverride =
+					ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+				ASimpleItemActorInventory* DiscardItem = GetWorld()->SpawnActor<ASimpleItemActorInventory>(
+					TmpItemDef->ItemClass,
+					SpawnTransform,
+					SpawnParameters);
+
+				if (DiscardItem)
+				{
+					DiscardItem->SetItemCounts(ItemCounts);
+				}
+			}
+		}
+	}
+}
+
+void USimpleInvMgrComponent::TakeOutItemFromInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef)
+{
+	check(GetOwner() && GetOwner()->HasAuthority() && GetWorld());
+
+	if (ItemDef)
+	{
+		const USimpleItemPickableDefinition* TmpItemDef = ItemDef.GetDefaultObject();
+		USimplePlayerItemInterComponent* IC_Player = GetItemInteractionComponent();
+
+		if (IC_Player && TmpItemDef->bAllowInHand && TmpItemDef->ItemClass)
+		{
+			if (InventoryList.RemoveEntry(ItemDef, 1))
+			{
+				FTransform SpawnTransform(
+					GetOwner()->GetActorRotation(),
+					GetOwner()->GetActorLocation(),
+					FVector::OneVector);
+
+				ASimpleItemActorInventory* TakeOutItem = GetWorld()->SpawnActor<ASimpleItemActorInventory>(
+					TmpItemDef->ItemClass, SpawnTransform);
+
+				if (TakeOutItem)
+				{
+					TakeOutItem->SetItemCounts(1);
+
+					IC_Player->ServerTriggerItem(TakeOutItem, true);
+				}
+			}
+		}
+	}
+}
+
+void USimpleInvMgrComponent::DiscardItemFromInventoryOnServer_Implementation(
+	TSubclassOf<USimpleItemPickableDefinition> ItemDef, const int32& ItemCounts)
+{
+	DiscardItemFromInventory(ItemDef, ItemCounts);
+}
+
+void USimpleInvMgrComponent::TakeOutItemFromInventoryOnServer_Implementation(
+	TSubclassOf<USimpleItemPickableDefinition> ItemDef)
+{
+	TakeOutItemFromInventory(ItemDef);
 }

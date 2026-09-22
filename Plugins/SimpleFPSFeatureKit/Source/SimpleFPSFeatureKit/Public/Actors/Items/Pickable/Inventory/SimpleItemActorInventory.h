@@ -40,13 +40,14 @@ public:
 	int32 GetItemCounts() const { return ItemCounts; }
 
 protected:
+	//是否可以触发
 	virtual bool IsStartTrigger_Implementation(USimpleItemInterComponent* ItemInteractionComponent, bool bForceInHand) override;
 	virtual void OnStartTrigger_Implementation(USimpleItemInterComponent* ItemInteractionComponent, bool bForceInHand) override;
 	virtual void OnEndTrigger_Implementation(USimpleItemInterComponent* ItemInteractionComponent, bool bIsPutPack) override;
 	
 protected:
 	UFUNCTION(BlueprintCallable, Category="Inventory")
-	void PickupItemToInventory();
+	int32 PickupItemToInventory();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")

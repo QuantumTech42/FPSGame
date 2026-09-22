@@ -8,6 +8,8 @@
 #include "Net/Serialization/FastArraySerializer.h"
 #include "SimpleInvMgrComponent.generated.h"
 
+class USimplePlayerItemInterComponent;
+
 USTRUCT(BlueprintType)
 struct FSimpleItemInventoryEntry : public FFastArraySerializerItem
 {
@@ -35,14 +37,17 @@ public:
 	void SetInventorySize(const int32& NewInventorySize);
 	//是否可以添加Entry
 	//是否可以堆叠物品
-	bool IsAddEntry(const TSubclassOf<USimpleItemPickableDefinition>& NewItemDef,FSimpleItemInventoryEntry*& ItemEntry);
-	bool IsRemoveEntry(const TSubclassOf<USimpleItemPickableDefinition>& InItemDef,const int32& ItemCounts,FSimpleItemInventoryEntry*& ItemEntry);
+	bool IsAddEntry(const TSubclassOf<USimpleItemPickableDefinition>& NewItemDef,
+	                FSimpleItemInventoryEntry*& ItemEntry);
+	bool IsRemoveEntry(const TSubclassOf<USimpleItemPickableDefinition>& InItemDef, const int32& ItemCounts,
+	                   FSimpleItemInventoryEntry*& ItemEntry);
 	//数据增删改查
-	int32 AddEntry(const TSubclassOf<USimpleItemPickableDefinition>& NewItemDef,const int32& ItemCounts);
-	int32 RemoveEntry(const TSubclassOf<USimpleItemPickableDefinition>& InItemDef,const int32& ItemCounts);
+	int32 AddEntry(const TSubclassOf<USimpleItemPickableDefinition>& NewItemDef, const int32& ItemCounts);
+	int32 RemoveEntry(const TSubclassOf<USimpleItemPickableDefinition>& InItemDef, const int32& ItemCounts);
 	FSimpleItemInventoryEntry* GetEntry(const TSubclassOf<USimpleItemPickableDefinition>& InItemDef);
-	
+
 public:
+	//2.增量序列化
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 	{
 		return FFastArraySerializer::FastArrayDeltaSerialize<FSimpleItemInventoryEntry, FSimpleItemInventoryList>(
@@ -72,6 +77,13 @@ private:
 	int32 InventorySize = 1;
 };
 
+//1.告诉UE走增量同步
+template <>
+struct TStructOpsTypeTraits<FSimpleItemInventoryList> : public TStructOpsTypeTraitsBase2<FSimpleItemInventoryList>
+{
+	enum { WithNetDeltaSerializer = true };
+};
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), BlueprintType, Blueprintable)
 class SIMPLEFPSFEATUREKIT_API USimpleInvMgrComponent : public UActorComponent
 {
@@ -92,4 +104,46 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
+
+USimplePlayerItemInterComponent* GetItemInteractionComponent();
+	
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="Inventory Manager Component")
+	FSimpleItemInventoryList GetInventoryList() { return InventoryList; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="Inventory Manager Component")
+	bool GetItemEntry(TSubclassOf<USimpleItemPickableDefinition> ItemDef,FSimpleItemInventoryEntry& TargetEntry);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory Manager Component")
+	bool IsAddItemToInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory Manager Component")
+	bool IsRemoveItemFromInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef,const int32& ItemCounts);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory Manager Component")
+	int32 AddItemToInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef,const int32& ItemCounts);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory Manager Component")
+	int32 RemoveItemFromInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef,const int32& ItemCounts);
+
+	//丢弃
+	UFUNCTION(BlueprintCallable, Category="Inventory Manager Component")
+	void DiscardItemFromInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef,const int32& ItemCounts);
+
+	//取出，比如取出武器
+	UFUNCTION(BlueprintCallable, Category="Inventory Manager Component")
+	void TakeOutItemFromInventory(const TSubclassOf<USimpleItemPickableDefinition>& ItemDef);
+
+public:
+	//网络同步只能接受值传递
+	UFUNCTION(BlueprintCallable, Server,Unreliable,Category="Inventory Manager Component")
+	void DiscardItemFromInventoryOnServer(TSubclassOf<USimpleItemPickableDefinition> ItemDef,const int32& ItemCounts);
+
+	UFUNCTION(BlueprintCallable,Server,Unreliable, Category="Inventory Manager Component")
+	void TakeOutItemFromInventoryOnServer(TSubclassOf<USimpleItemPickableDefinition> ItemDef);
+	
+private:
+	//直接通过变量增量同步，无需函数广播
+	UPROPERTY(Replicated)
+	FSimpleItemInventoryList InventoryList;
 };

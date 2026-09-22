@@ -9,6 +9,8 @@
 #include "SimplePlayerItemInterComponent.generated.h"
 
 
+class USimpleWeaponManagerComponent;
+class ASimpleItemActorWeapon;
 struct FInputActionValue;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent),BlueprintType,Blueprintable)
@@ -34,8 +36,10 @@ protected:
 	FVector SphereCenterOffset;
 
 public:
+	//开始交互
 	virtual void
 	OnSelectingItemTriggerStart_Implementation(ASimpleItemActorBase* InSelectingItem, bool bForceInHand) override;
+	//结束交互
 	virtual void
 	OnInteractingItemTriggerEnd_Implementation(ASimpleItemActorBase* InInteractingItem, bool bIsPutPack) override;
 
@@ -58,6 +62,10 @@ public:
 public:
 	void CheckItemAroundPlayer();
 
+	void PickupNewWeapon(ASimpleItemActorWeapon* InNewWeapon,bool bForceInHand);
+
+	USimpleWeaponManagerComponent* GetWeaponManager() const;
+	
 public:
 	UPROPERTY(BlueprintReadOnly, Category=Config)
 	TArray<ASimpleItemActorBase*> NearbyItems;

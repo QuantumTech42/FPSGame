@@ -7,6 +7,7 @@
 #include "Actors/ItemDefinition/SimpleItemPickableDefinition.h"
 #include "Actors/Items/Pickable/Weapons/SimpleWeaponInstance.h"
 #include "Components/SimpleItemInterComponent.h"
+#include "Components/SimpleWeaponManagerComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Interface/SimpleItemInteractionInterface.h"
 #include "Net/UnrealNetwork.h"
@@ -73,6 +74,23 @@ void ASimpleItemActorWeapon::OnStartTrigger_Implementation(USimpleItemInterCompo
 	}
 
 	//武器管理相关
+	if (USimpleWeaponManagerComponent* WeaponManager = GetWeaponManager(ItemInteractionComponent))
+	{
+		if (WeaponManager->AddWeapon(this))
+		{
+			if (bForceInHand)
+			{
+				ASimpleItemActorBase::OnStartTrigger_Implementation(ItemInteractionComponent, bForceInHand);
+				WeaponManager->EquipWeapon((int32)WeaponInstance->GetWeaponSlot());
+				EquipToHand();
+			}
+			else
+			{
+				ASimpleItemActorBase::OnStartTrigger_Implementation(ItemInteractionComponent, bForceInHand);
+				EquipToSlot();
+			}
+		}
+	}
 }
 
 void ASimpleItemActorWeapon::OnEndTrigger_Implementation(USimpleItemInterComponent* ItemInteractionComponent,
@@ -82,7 +100,25 @@ void ASimpleItemActorWeapon::OnEndTrigger_Implementation(USimpleItemInterCompone
 
 	if (WeaponInstance)
 	{
-		
+		if (USimpleWeaponManagerComponent* WeaponManager = GetWeaponManager(ItemInteractionComponent))
+		{
+			if (bIsPutPack)
+			{
+				if (WeaponManager->GetWeaponInSlot(WeaponManager->GetEquipSlot()) == this &&
+					WeaponManager->UnequipWeapon())
+				{
+					EquipToSlot();
+				}
+				else
+				{
+					if (WeaponManager->RemoveWeapon((int32)WeaponInstance->GetWeaponSlot()))
+					{
+						ThrowItem(ItemInteractionComponent,WeaponMesh,false);
+						Super::OnEndTrigger_Implementation(ItemInteractionComponent, bIsPutPack);
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -125,6 +161,17 @@ void ASimpleItemActorWeapon::EquipToHand()
 			}
 		}
 	}
+}
+
+USimpleWeaponManagerComponent* ASimpleItemActorWeapon::GetWeaponManager(
+	USimpleItemInterComponent* ItemInteractionComponent) const
+{
+	if (ItemInteractionComponent && ItemInteractionComponent->GetOwner())
+	{
+		return ItemInteractionComponent->GetOwner()->FindComponentByClass<USimpleWeaponManagerComponent>();
+	}
+
+	return nullptr;
 }
 
 // Called every frame
