@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerController.h"
 #include "FPSPlayerControllerBase.generated.h"
 
+class USimpleShooterAbilityComponent;
 /**
  * 
  */
@@ -20,4 +21,12 @@ public:
 	AFPSPlayerControllerBase();
 
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
+
+private:
+	UPROPERTY()
+	TWeakObjectPtr<USimpleShooterAbilityComponent> AbilityComponent;
 };

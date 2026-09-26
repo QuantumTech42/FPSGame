@@ -104,7 +104,7 @@ void ASimpleItemActorInventory::OnEndTrigger_Implementation(USimpleItemInterComp
 
 int32 ASimpleItemActorInventory::PickupItemToInventory()
 {
-	if (InteractingComponent == nullptr && InteractingComponent->GetOwner() == nullptr)
+	if (InteractingComponent == nullptr || InteractingComponent->GetOwner() == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[ASimpleItemActorInventory::PickupItemToInventory]无效的交互组件或拥有者"));
 		return 0;

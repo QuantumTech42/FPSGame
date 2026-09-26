@@ -18,6 +18,10 @@ public class FPSGame : ModuleRules
 			"SimpleFPSFeatureKit",
 			"SimpleModularGameplay",
 			"SimpleInputExpand",
+			
+			"GameplayTags",
+			"GameplayAbilities",
+			"GameplayTasks",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

@@ -66,7 +66,7 @@ void ASimpleItemActorWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ASimpleItemActorWeapon::OnStartTrigger_Implementation(USimpleItemInterComponent* ItemInteractionComponent,
                                                            bool bForceInHand)
 {
-	Super::OnStartTrigger_Implementation(ItemInteractionComponent, bForceInHand);
+	//Super::OnStartTrigger_Implementation(ItemInteractionComponent, bForceInHand);
 
 	if (WeaponInstance == nullptr)
 	{
@@ -96,7 +96,7 @@ void ASimpleItemActorWeapon::OnStartTrigger_Implementation(USimpleItemInterCompo
 void ASimpleItemActorWeapon::OnEndTrigger_Implementation(USimpleItemInterComponent* ItemInteractionComponent,
                                                          bool bIsPutPack)
 {
-	Super::OnEndTrigger_Implementation(ItemInteractionComponent, bIsPutPack);
+	//Super::OnEndTrigger_Implementation(ItemInteractionComponent, bIsPutPack);
 
 	if (WeaponInstance)
 	{
@@ -109,13 +109,13 @@ void ASimpleItemActorWeapon::OnEndTrigger_Implementation(USimpleItemInterCompone
 				{
 					EquipToSlot();
 				}
-				else
+			}
+			else
+			{
+				if (WeaponManager->RemoveWeapon((int32)WeaponInstance->GetWeaponSlot()))
 				{
-					if (WeaponManager->RemoveWeapon((int32)WeaponInstance->GetWeaponSlot()))
-					{
-						ThrowItem(ItemInteractionComponent,WeaponMesh,false);
-						Super::OnEndTrigger_Implementation(ItemInteractionComponent, bIsPutPack);
-					}
+					ThrowItem(ItemInteractionComponent,WeaponMesh,false);
+					Super::OnEndTrigger_Implementation(ItemInteractionComponent, bIsPutPack);
 				}
 			}
 		}

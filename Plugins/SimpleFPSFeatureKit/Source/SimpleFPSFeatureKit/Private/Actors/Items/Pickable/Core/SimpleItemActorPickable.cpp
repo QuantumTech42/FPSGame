@@ -84,6 +84,16 @@ void ASimpleItemActorPickable::OnEndTrigger_Implementation(USimpleItemInterCompo
                                                            bool bIsPutPack)
 {
 	Super::OnEndTrigger_Implementation(ItemInteractionComponent, bIsPutPack);
+
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+	if (!bIsPutPack)
+	{
+		if (ItemDefinition && ItemDefinition.GetDefaultObject()->EndTriggerAnimMontage)
+		{
+			ItemInteractionComponent->PlayMontageNetMulticast(ItemDefinition.GetDefaultObject()->EndTriggerAnimMontage);
+		}
+	}
 }
 
 void ASimpleItemActorPickable::PickupItem_Implementation(USimpleItemInterComponent* ItemInteractionComponent,

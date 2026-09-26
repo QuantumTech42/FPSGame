@@ -21,11 +21,14 @@ public class SimpleFPSFeatureKit : ModuleRules
 			}
 			);
 			
-		
+		//其他模块包含插件以后无需再包含下面这些模块
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
+				"GameplayAbilities",
+				"GameplayTags",
+				"GameplayTasks",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -39,9 +42,6 @@ public class SimpleFPSFeatureKit : ModuleRules
 				"Slate",
 				"SlateCore",
 				"EnhancedInput",
-				"GameplayAbilities",
-				"GameplayTags",
-				"GameplayTasks",
 				"NetCore"
 				// ... add private dependencies that you statically link with here ...	
 			}

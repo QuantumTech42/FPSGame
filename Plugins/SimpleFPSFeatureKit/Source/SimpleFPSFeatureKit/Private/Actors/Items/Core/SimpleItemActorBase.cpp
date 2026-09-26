@@ -42,26 +42,26 @@ void ASimpleItemActorBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProp
 
 bool ASimpleItemActorBase::StartTrigger(USimpleItemInterComponent* ItemInteractionComponent, bool bForceInHand)
 {
-	if (IsStartTrigger(InteractingComponent.Get(), bForceInHand))
+	if (!IsStartTrigger(ItemInteractionComponent, bForceInHand))
 	{
 		UE_LOG(LogTemp, Error, TEXT("[ASimpleItemActorBase::StartTrigger]正在交互"));
 		return false;
 	}
 
-	OnStartTrigger(InteractingComponent.Get(), bForceInHand);
+	OnStartTrigger(ItemInteractionComponent, bForceInHand);
 
 	return true;
 }
 
 bool ASimpleItemActorBase::EndTrigger(USimpleItemInterComponent* ItemInteractionComponent, bool bIsPutPack)
 {
-	if (IsEndTrigger(InteractingComponent.Get(), bIsPutPack))
+	if (!IsEndTrigger(ItemInteractionComponent, bIsPutPack))
 	{
 		UE_LOG(LogTemp, Error, TEXT("[ASimpleItemActorBase::EndTrigger]不可结束交互"));
 		return false;
 	}
 
-	OnEndTrigger(InteractingComponent.Get(), bIsPutPack);
+	OnEndTrigger(ItemInteractionComponent, bIsPutPack);
 
 	return true;
 }

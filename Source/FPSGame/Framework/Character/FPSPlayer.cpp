@@ -7,6 +7,7 @@
 #include "Components/SimpleFPSInputComponent.h"
 #include "Components/SimpleInputComponent.h"
 #include "Components/SimplePlayerItemInterComponent.h"
+#include "Components/SimpleShooterAbilityComponent.h"
 
 //防止代码优化，方便调试
 UE_DISABLE_OPTIMIZATION
@@ -32,6 +33,17 @@ void AFPSPlayer::K2_OnActionInputTag_Implementation(ETriggerEvent InEvent, const
 			{
 				InteractionComponent->Throw(Value);
 			}
+		}
+	}
+	else if (InputTag.GetTagName().ToString().Contains(TEXT("Gun.")))
+	{
+		if (InEvent == ETriggerEvent::Triggered)
+		{
+			AbilitySystemComponent->AbilityInputTagPressed(InputTag);
+		}
+		else if (InEvent == ETriggerEvent::Completed)
+		{
+			AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 		}
 	}
 }
