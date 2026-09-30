@@ -10,6 +10,7 @@
 
 #include "FPSCharatcerBase.generated.h"
 
+class USimpleShooterAttributeSetBase;
 class USimpleShooterAbilityComponent;
 //伤害和接受伤害，攻击
 UCLASS(config=Game)
@@ -22,6 +23,9 @@ class FPSGAME_API AFPSCharatcerBase : public ASimpleModularCharacter,
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=TPAbility, meta=(AllowPrivateAccess="true"))
 	TObjectPtr<USimpleShooterAbilityComponent> AbilitySystemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=TPAbility, meta=(AllowPrivateAccess="true"))
+	TObjectPtr<USimpleShooterAttributeSetBase> AttributeSet;
 
 public:
 	// Sets default values for this character's properties
@@ -37,6 +41,10 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+public:
+	UFUNCTION(BlueprintPure,Category="Shotter|Attribute")
+	virtual USimpleShooterAttributeSetBase* GetAttribute() const;
 
 public:
 	virtual USkeletalMeshComponent* GetCharacterMesh_Implementation() override;

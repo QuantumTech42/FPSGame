@@ -3,6 +3,7 @@
 
 #include "FPSCharatcerBase.h"
 
+#include "AbilitySystem/Attribute/SimpleShooterAttributeSetBase.h"
 #include "Actors/Items/Pickable/Weapons/SimpleWeaponInstance.h"
 #include "Components/SimpleShooterAbilityComponent.h"
 #include "Components/SimpleWeaponManagerComponent.h"
@@ -32,6 +33,15 @@ void AFPSCharatcerBase::BeginPlay()
 	{
 		InWeaponManagerComponent->InitWeaponManager((int32)ESimpleWeaponSlot::WS_SNIPER + 1);
 	}
+
+	AttributeSet = NewObject<USimpleShooterAttributeSetBase>(this,USimpleShooterAttributeSetBase::StaticClass());
+	if (HasAuthority())
+	{
+		if (AttributeSet)
+		{
+			AbilitySystemComponent->AddAttributeSetSubobject<USimpleShooterAttributeSetBase>(AttributeSet);
+		}
+	}
 }
 
 // Called every frame
@@ -44,6 +54,11 @@ void AFPSCharatcerBase::Tick(float DeltaTime)
 void AFPSCharatcerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+USimpleShooterAttributeSetBase* AFPSCharatcerBase::GetAttribute() const
+{
+	return AttributeSet;
 }
 
 USkeletalMeshComponent* AFPSCharatcerBase::GetCharacterMesh_Implementation()
